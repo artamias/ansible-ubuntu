@@ -1,0 +1,42 @@
+---
+# ============================================================
+# NGINX TASKS - Install dan konfigurasi Nginx
+# ============================================================
+
+- name: Install Nginx
+  apt:
+      name: nginx
+      state: present
+      update_cache: yes
+
+# Backup nginx configuration
+- name: Backup konfigurasi nginx.conf default
+  copy:
+    src: /etc/nginx/nginx.conf
+    dest: /etc/nginx/nginx.conf.backup
+    remote_src: yes
+    force: no   # Tidak overwrite kalo backup sudah ada
+
+# Delete default conf nginx
+- name: Hapus default konfigurasi nginx 
+  file:
+      path: "{{ item }}"
+      state: absent
+  loop:
+      - /etc/nginx/sites-enabled/default
+      - /etc/nginx/sites-available/default
+  notify: reload nginx
+
+# Test nginx conf is success
+- name: Test konfigurasi nginx
+  command: nginx -t
+  register: nginx_test
+  changed_when: false
+  failed_when: nginx_test.rc != 0
+
+# Cek if nginx can running normaly
+- name: Pastikan Nginx berjalan
+  service:
+      name: nginx
+      state: started
+      enabled: yes

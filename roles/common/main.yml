@@ -1,0 +1,96 @@
+---
+# ============================================================
+# COMMON TASKS - Setup provisioning server
+# ============================================================
+
+# Apt update & upgrade
+- name: Update apt dan upgrade semua package
+  apt:
+      update_cache: yes
+      upgrade: dist
+
+# Install required packages
+- name: Install package yang diperlukan
+  apt:
+      name:
+          - curl
+          - wget
+          - git
+          - unzip
+          - zip
+          - software-properties-common
+          - apt-transport-https
+          - ca-certificates
+          - gnupg
+          - lsb-release
+          - ufw
+          - fail2ban
+          - htop
+          - net-tools
+      state: present
+
+# Set timezone sync
+- name: Set timezone ke Asia/Jakarta
+  timezone:
+      name: "{{ timezone }}"
+
+# Create swapfile
+- name: Cek apakah swap sudah ada
+  stat:
+    path: /swapfile
+  register: swap_file
+
+- name: Buat swap file
+  command: fallocate -l {{ swap_size_mb }}G /swapfile
+  when: not swap_file.stat.exists
+
+- name: Set permission swap file
+  file:
+    path: /swapfile
+    mode: '0600'
+  when: not swap_file.stat.exists
+
+- name: Format swap file
+  command: mkswap /swapfile
+  when: not swap_file.stat.exists
+
+- name: Aktifkan swap
+  command: swapon /swapfile
+  when: not swap_file.stat.exists
+
+- name: Tambah swap ke /etc/fstab agar persisten
+  lineinfile:
+    path: /etc/fstab
+    line: '/swapfile none swap sw 0 0'
+    state: present
+
+# Enable UFW and allow SSH and HTTP/HTTPS port
+- name: Aktifkan UFW Firewall
+  ufw:
+    state: enabled
+    policy: deny
+
+- name: Konfigurasi UFW - allow SSH
+  ufw:
+    rule: allow
+    port: '22'
+    proto: tcp
+
+- name: Konfigurasi UFW - allow HTTP
+  ufw:
+    rule: allow
+    port: '80'
+    proto: tcp
+
+- name: Konfigurasi UFW - allow HTTPS
+  ufw:
+    rule: allow
+    port: '443'
+    proto: tcp
+
+# Enable fail2ban
+- name: Cek fail2ban apakah berjalan
+  service:
+    name: fail2ban
+    state: started
+    enabled: yes

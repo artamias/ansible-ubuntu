@@ -1,0 +1,52 @@
+---
+# ============================================================
+# VARS - Semua konfigurasi (dapat di edit)
+# ============================================================
+
+# PHP Configuration
+php_versions:
+    - "8.1"
+    - "8.2"
+    - "8.3"
+
+php_default_version: "php8.3"
+
+php_extensions:
+    - cli
+    - fpm
+    - mysql
+    - curl
+    - mbstring
+    - xml
+    - zip
+    - bcmath
+    - tokenizer
+    - gd
+    - intl
+    - redis
+    - opcache
+    - imagick
+
+# MariaDB Configuration
+mariadb_version: "11.8"
+mariadb_root_password: "{{ vault_mariadb_root_password }}"
+mariadb_bind_address: "127.0.0.1"
+mariadb_port: 3306
+
+# Database and user for Laravel
+mariadb_databases:
+    - name: db_laravel
+      encoding: utf8mb4
+      collation: utf8mb4_unicode_ci
+
+mariadb_users:
+    - name: user_laravel
+      password: "{{ vault_mariadb_user_password }}"
+      priv: "db_laravel.*:ALL" #grant privileges
+      host: "localhost"
+
+# System timezone
+timezone: "Asia/Jakarta"
+
+# Swapfile size
+swap_size_mb: 2

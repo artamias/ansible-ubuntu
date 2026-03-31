@@ -1,0 +1,21 @@
+- name: Setup Nginx, Mariadb, dan PHP Multiversion untuk Laravel 
+  hosts: webservers
+  become: yes
+  gather_facts: yes
+
+  roles:
+    # Tasks for install and update package, set timezone, swapfile and UFW firewall
+    - role: common
+      tags: [common, always]
+
+    # Tasks for install PHP 8.1/8.2/8.3 extensions and composer
+    - role: php
+      tags: [php]
+
+    # Task for install and configuration Nginx
+    - role: nginx
+      tags: [nginx]
+
+    # Tasks for install Mariadb with secure installation and create DB and user for Laravel
+    - role: mariadb
+      tags: [mariadb, db]

@@ -1,0 +1,124 @@
+---
+# ============================================================
+# MARIADB TASKS - Install dan konfigurasi MariaDB
+# ============================================================
+
+# Install required dependency
+- name: Install dependency untuk MariaDB repository
+  apt:
+    name:
+      - apt-transport-https
+      - curl
+      - gnupg
+      - software-properties-common
+    state: present
+
+# Download mariadb signing key
+- name: Download MariaDB signing key
+  get_url:
+    url: "https://mariadb.org/mariadb_release_signing_key.pgp"
+    dest: /etc/apt/keyrings/mariadb-keyring.pgp
+    mode: '0644'
+
+# Add repository mariadb with singing key
+- name: Tambah MariaDB repository V.{{ mariadb_version }} menggunakan Mirror link
+  apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/mariadb-keyring.pgp] http://mirror.23media.com/mariadb/repo/{{ mariadb_version }}/ubuntu {{ ansible_distribution_release }} main"
+    state: present
+    filename: mariadb
+    update_cache: yes
+
+# Install mariadb server and client
+- name: Install MariaDB Server
+  apt:
+    name:
+      - mariadb-server
+      - mariadb-client
+    state: present
+
+# Cek is service mariadb can running normaly
+- name: Cek service MariaDB
+  service:
+    name: mariadb
+    state: started
+    enabled: yes
+
+# Setup security mariadb
+- name: Set root password MariaDB
+  mysql_user:
+    name: root
+    password: "{{ mariadb_root_password }}"
+    host_all: yes
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    state: present
+  no_log: true
+
+- name: Hapus anonymous users
+  mysql_user:
+    name: ''
+    host_all: yes
+    state: absent
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+  no_log: true
+
+- name: Hapus test database
+  mysql_db:
+    name: test
+    state: absent
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+  no_log: true
+
+- name: Menghapus remote root login
+  mysql_user:
+    name: root
+    host: "{{ item }}"
+    state: absent
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+  loop:
+    - "{{ ansible_hostname }}"
+    - "127.0.0.1" #ipv4
+    - "::1" #ipv6
+  ignore_errors: yes
+  no_log: true
+
+# Create database for Laravel
+- name: Buat database Laravel
+  mysql_db:
+    name: "{{ item.name }}"
+    encoding: "{{ item.encoding }}"
+    collation: "{{ item.collation }}"
+    state: present
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+  loop: "{{ mariadb_databases }}"
+  no_log: true
+
+- name: Buat user database Laravel
+  mysql_user:
+    name: "{{ item.name }}"
+    password: "{{ item.password }}"
+    priv: "{{ item.priv }}"
+    host: "{{ item.host }}"
+    state: present
+    login_user: root
+    login_password: "{{ mariadb_root_password }}"
+  loop: "{{ mariadb_users }}"
+  no_log: true
+
+- name: Flush privileges
+  command: mysql -u root -p{{ mariadb_root_password }} -e "FLUSH PRIVILEGES;"
+  changed_when: false
+  no_log: true
+
+# - name: Tampilkan info koneksi database (untuk konfigurasi .env Laravel)
+#   debug:
+#     msg:
+#       - "==== DATABASE INFO (untuk .env Laravel) ===="
+#       - "DB_HOST=127.0.0.1"
+#       - "DB_PORT={{ mariadb_port }}"
+#       - "DB_DATABASE={{ mariadb_databases[0].name }}"
+#       - "DB_USERNAME={{ mariadb_users[0].name }}"
+#       - "DB_PASSWORD=<lihat group_vars/all.yml>"

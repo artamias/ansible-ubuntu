@@ -1,0 +1,63 @@
+---
+# ============================================================
+# PHP TASKS - Install PHP multi-version untuk Laravel
+# ============================================================
+
+# Add repo PHP (Ondrej) for Ubuntu/Debian
+- name: Tambah repository PHP Ondrej (PHP PPA) untuk Ubuntu
+  apt_repository:
+      repo: ppa:ondrej/php
+      state: present
+      update_cache: yes
+
+# Install PHP (8.1, 8.2, 8.3) with extensions with multi installation
+- name: Install PHP beserta semua extension untuk Laravel
+  apt:
+    name: "php{{ item[0] }}-{{ item[1] }}"
+    state: present
+  with_nested:
+    - "{{ php_versions }}"
+    - "{{ php_extensions }}"
+
+# Cek all version PHP-FPM running normaly
+- name: Pastikan service PHP-FPM berjalan untuk setiap versi
+  service:
+    name: "php{{ item }}-fpm"
+    state: started
+    enabled: yes
+  loop: "{{ php_versions }}"
+
+# Set default PHP (8.3)
+- name: Set default PHP ke 8.3
+  alternatives:
+    name: php
+    path: /usr/bin/{{php_default_version}}
+
+# Install Composer
+- name: Install Composer (PHP package manager untuk Laravel)
+  block:
+      - name: Download dan verifikasi Composer installer
+        get_url:
+            url: https://getcomposer.org/installer
+            dest: /tmp/composer-setup.php
+            # ganti hash ini kalau ada update resmi dari composer
+            checksum: sha384:c8b085408188070d5f52bcfe4ecfbee5f727afa458b2573b8eaaf77b3419b0bf2768dc67c86944da1544f06fa544fd47
+        register: php_setup
+
+      - name: Install dan jalankan Composer-nya
+        command: "php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer"
+        when: php_setup.changed
+        args:
+            creates: /usr/local/bin/composer
+
+      - name: Hapus file installer jika sudah selesai
+        file:
+          path: /tmp/composer-setup.php
+          state: absent
+
+# Show up PHP version
+- name: Tampilkan versi PHP yang terinstall
+  command: "php{{ item }} --version"
+  loop: "{{ php_versions }}"
+  register: php_versions_output
+  changed_when: false
