@@ -1,7 +1,4 @@
 ---
-# ============================================================
-# PHP TASKS - Install PHP multi-version untuk Laravel
-# ============================================================
 
 # Add repo PHP (Ondrej) for Ubuntu/Debian
 - name: Tambah repository PHP Ondrej (PHP PPA) untuk Ubuntu

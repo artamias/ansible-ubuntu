@@ -22,10 +22,3 @@
 
 # Hanya menjalankan MariaDB
 - ansible-playbook site.yml --tags mariadb
-
-3. Berikut yang di isi di group_vars/secrets.yml
-# MariaDB root
-- vault_mariadb_root_password: "123"
-
-# Mariadb user (laravel)
-- vault_mariadb_user_password: "123"

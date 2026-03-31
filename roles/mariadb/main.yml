@@ -1,7 +1,4 @@
 ---
-# ============================================================
-# MARIADB TASKS - Install dan konfigurasi MariaDB
-# ============================================================
 
 # Install required dependency
 - name: Install dependency untuk MariaDB repository

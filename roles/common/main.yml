@@ -1,7 +1,4 @@
 ---
-# ============================================================
-# COMMON TASKS - Setup provisioning server
-# ============================================================
 
 # Apt update & upgrade
 - name: Update apt dan upgrade semua package
