@@ -1,0 +1,74 @@
+---
+
+# Install required dependencies
+- name: Install dependensi yang dibutuhkan
+  apt:
+    name: [apt-transport-https, ca-certificates, curl, gnupg, lsb-release]
+    state: present
+    update_cache: yes
+
+# Add GPG Key
+- name: Tambahkan GPG Key resmi Docker
+  shell:
+    cmd: |
+      set -o pipefail
+      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o {{ docker_keyring }}
+  args:
+    executable: /bin/bash
+    creates: "{{ docker_keyring }}"
+
+# Add repository Docker
+- name: Tambahkan Repo Docker
+  apt_repository:
+    repo: "deb [arch=amd64 signed-by={{ docker_keyring }}] https://download.docker.com/linux/ubuntu {{ distro_codename_docker }} stable"
+    state: present
+    filename: docker
+
+# Install Docker with environment
+- name: Install Docker Engine dan Docker Compose Plugin
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: yes
+
+# Check Docker services
+- name: Cek Docker running dan enabled
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+
+# Create docker volume for Portainer
+- name: Buat volume untuk data Portainer
+  docker_volume:
+    name: portainer_data
+    state: present
+
+# Create Portainer with docker run
+- name: Jalankan Portainer CE Container
+  shell:
+    cmd: |
+      docker run -d -p 8000:8000 -p 9443:9443 --name portainer \
+      --restart=always \
+      -v /var/run/docker.sock:/var/run/docker.sock \
+      -v portainer_data:/data \
+      portainer/portainer-ce:latest
+  args:
+    # Task jalan kalau container belum ada
+    creates: /var/lib/docker/containers/*portainer*
+
+# Verification Portainer service
+- name: Verifikasi status Portainer
+  command: docker ps -f name=portainer
+  register: portainer_status
+  changed_when: false
+
+# Check docker installation
+- name: Selesai
+  debug:
+    msg: "Docker terinstal. Akses Portainer di port 9443"

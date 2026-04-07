@@ -1,0 +1,58 @@
+---
+
+# Install required dependencies
+- name: Install dependensi yang dibutuhkan
+  apt:
+    name: [lsb-release, curl, gnupg]
+    state: present
+    update_cache: yes
+
+# Donwload singing key
+- name: Download dan dearmor GPG key Redis
+  shell:
+    cmd: |
+      set -o pipefail
+      curl -fsSL {{ redis_gpg_url }} | gpg --dearmor -o {{ redis_keyring_path }}
+  args:
+    executable: /bin/bash
+    creates: "{{ redis_keyring_path }}"
+
+# Create permission key
+- name: Buat permission GPG key (644)
+  file:
+    path: "{{ redis_keyring_path }}"
+    mode: '0644'
+    owner: root
+    group: root
+
+# Create Redis Repository
+- name: Tambahkan Repo Resmi Redis
+  apt_repository:
+    repo: "deb [signed-by={{ redis_keyring_path }}] https://packages.redis.io/deb {{ distro_codename_redis }} main"
+    state: present
+    filename: redis
+
+# Install Redis and apt update
+- name: Install Redis dan update cache
+  apt:
+    name: redis
+    state: present
+    update_cache: yes
+
+# Check Redis service
+- name: Cek service Redis running dan enable
+  systemd:
+    name: redis-server
+    state: started
+    enabled: yes
+
+# Verif Redis installation
+- name: Verifikasi instalasi Redis
+  command: redis-cli --version
+  register: redis_version
+  changed_when: false
+
+# Check Redis version
+- name: Tampilkan versi Redis
+  debug:
+    msg: "Redis berhasil diinstal: {{ redis_version.stdout }}"

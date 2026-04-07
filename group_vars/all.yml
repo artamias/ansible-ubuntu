@@ -30,9 +30,53 @@ mariadb_root_password: "{{ vault_mariadb_root_password }}"
 mariadb_bind_address: "127.0.0.1"
 mariadb_port: 3306
 
+# Postgresql Configuration
+pg_version: "18"
+pg_key_url: "https://www.postgresql.org/media/keys/ACCC4CF8.asc"
+pg_key_path: "/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc"
+
+# Redis Configuration
+redis_gpg_url: "https://packages.redis.io/gpg"
+redis_keyring_path: "/usr/share/keyrings/redis-archive-keyring.gpg"
+distro_codename_redis: "{{ ansible_distribution_release }}" # Mengambil codename distribusi secara otomatis (cth: jammy, noble, bookworm)
+
+# Supabase Configuration
+# base_dir: "/opt/supabase" # custom dengan dir project
+repo_dir: "/opt/supabase/"
+project_dir: "/opt/supabase/supabase-project"
+supabase_repo: "https://github.com/supabase/supabase"
+
 # NodeJS Configuration
 nodejs_version: "24"
+nvm_version: "v0.40.1"
+nvm_dir: "{{ ansible_env.HOME }}/.nvm"
 
+# RabbitMQ
+rabbitmq_version: "latest"
+distro_codename_rabbitmq: "noble"
+keyring_path: "/usr/share/keyrings/com.rabbitmq.team.gpg"
+erlang_packages:
+    - erlang-base
+    - erlang-asn1
+    - erlang-crypto
+    - erlang-eldap
+    - erlang-ftp
+    - erlang-inets
+    - erlang-mnesia
+    - erlang-os-mon
+    - erlang-parsetools
+    - erlang-public-key
+    - erlang-runtime-tools
+    - erlang-snmp
+    - erlang-ssl
+    - erlang-syntax-tools
+    - erlang-tftp
+    - erlang-tools
+    - erlang-xmerl
+
+# Docker Configuration
+docker_keyring: "/usr/share/keyrings/docker-archive-keyring.gpg"
+distro_codename_docker: "{{ ansible_distribution_release }}"
 
 # Database and user for Laravel
 mariadb_databases:

@@ -1,6 +1,6 @@
 - name: Setup Nginx, Mariadb, dan PHP Multiversion untuk Laravel 
   hosts: setup
-  become: yes
+  # become: yes
   gather_facts: yes
 
   roles:
@@ -23,3 +23,23 @@
     # Task for install nodejs version LTS
     - role: nodejs
       tags: [nodejs]
+
+    # Task for install Postgresql 
+    - role: postgresql
+      tags: [postgresql]
+
+    # Task for install RabbitMQ
+    - role: rabbitmq
+      tags: [rabbitmq]
+
+    # Task for install redis
+    - role: redis
+      tags: [redis]
+
+    # Task for install docker
+    - role: docker
+      tags: [docker]
+
+      # Task for install supabase
+    - role: supabase
+      tags: [supabase]

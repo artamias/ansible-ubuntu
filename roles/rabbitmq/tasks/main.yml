@@ -1,0 +1,51 @@
+---
+
+# Install Dependencies
+- name: Install dependensi
+  apt:
+    name: [curl, gnupg, apt-transport-https]
+    state: present
+    update_cache: yes
+
+# Download GPG key
+- name: Download dan Dearmor GPG Key RabbitMQ
+  shell: |
+    set -o pipefail
+    curl -1sLf "https://keys.openpgp.org/vks/v1/by-fingerprint/0A9AF2115F4687BD29803A206B73A36E6026DFCA" | \
+    gpg --dearmor | tee {{ keyring_path }} > /dev/null
+  args:
+    creates: "{{ keyring_path }}"
+    executable: /bin/bash
+
+# Add RabbitMQ and Erlang repository
+- name: Tambahkan Repo RabbitMQ & Erlang (Mirror 1 & 2)
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+    filename: rabbitmq
+  loop:
+    - "deb [arch=amd64 signed-by={{ keyring_path }}] https://deb1.rabbitmq.com/rabbitmq-erlang/ubuntu/{{ distro_codename_rabbitmq }} {{ distro_codename_rabbitmq }} main"
+    - "deb [arch=amd64 signed-by={{ keyring_path }}] https://deb2.rabbitmq.com/rabbitmq-erlang/ubuntu/{{ distro_codename_rabbitmq }} {{ distro_codename_rabbitmq }} main"
+    - "deb [arch=amd64 signed-by={{ keyring_path }}] https://deb1.rabbitmq.com/rabbitmq-server/ubuntu/{{ distro_codename_rabbitmq }} {{ distro_codename_rabbitmq }} main"
+    - "deb [arch=amd64 signed-by={{ keyring_path }}] https://deb2.rabbitmq.com/rabbitmq-server/ubuntu/{{ distro_codename_rabbitmq }} {{ distro_codename_rabbitmq }} main"
+
+# Apt update and install Erlang package
+- name: Update cache dan install paket Erlang
+  apt:
+    name: "{{ erlang_packages }}"
+    state: present
+    update_cache: yes
+
+# Install RabbitMQ Server
+- name: Install RabbitMQ Server
+  apt:
+    name: rabbitmq-server
+    state: present
+    update_cache: yes
+
+# Check RabbitMQ service
+- name: Pastikan RabbitMQ running dan enable
+  systemd:
+    name: rabbitmq-server
+    state: started
+    enabled: yes

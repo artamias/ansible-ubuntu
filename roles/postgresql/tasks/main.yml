@@ -1,0 +1,57 @@
+---
+
+# Install required dependencies
+- name: Install dependesi yang dibutuhkan
+  ansible.builtin.apt:
+    name:
+      - curl
+      - ca-certificates
+      - gnupg
+    state: present
+    update_cache: yes
+
+# Create directory for GPG Key
+- name: Buat direktori untuk GPG key
+  file:
+    path: "/usr/share/postgresql-common/pgdg"
+    state: directory
+    mode: '0755'
+
+# Download Postgresql GPG Key
+- name: Download PostgreSQL GPG key
+  get_url:
+    url: "{{ pg_key_url }}"
+    dest: "{{ pg_key_path }}"
+    mode: '0644'
+
+# Add repository Postgresql to source.list
+- name: Tambahkan Repositori PostgreSQL ke sources.list
+  apt_repository:
+    repo: "deb [signed-by={{ pg_key_path }}] http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+    state: present
+    filename: pgdg
+
+# Install Postgresql with stable version
+- name: Install PostgreSQL {{ pg_version }} dan update cache
+  apt:
+    name: "postgresql-{{ pg_version }}"
+    state: present
+    update_cache: yes
+
+# Check Postgresql service
+- name: Cek PostgreSQL apakah running
+  systemd:
+    name: postgresql
+    state: started
+    enabled: yes
+
+# Verification installation
+- name: Verifikasi instalasi
+  command: psql --version
+  register: pg_version_output
+  changed_when: false
+
+# Check what version installed
+- name: Tampilkan versi terinstal
+  debug:
+    msg: "PostgreSQL terinstal: {{ pg_version_output.stdout }}"

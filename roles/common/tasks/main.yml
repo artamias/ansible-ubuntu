@@ -26,6 +26,18 @@
           - net-tools
       state: present
 
+# Install git dengan repositori
+# - name: Tambahkan Repositori PPA Git Core
+#   apt_repository:
+#     repo: "ppa:git-core/ppa"
+#     state: present
+#     update_cache: yes
+
+# - name: Install Git
+#   apt:
+#     name: git
+#     state: latest
+
 # Set timezone sync
 - name: Set timezone ke Asia/Jakarta
   timezone:
