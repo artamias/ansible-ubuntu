@@ -109,13 +109,3 @@
   command: mysql -u root -p{{ mariadb_root_password }} -e "FLUSH PRIVILEGES;"
   changed_when: false
   no_log: true
-
-# - name: Tampilkan info koneksi database (untuk konfigurasi .env Laravel)
-#   debug:
-#     msg:
-#       - "==== DATABASE INFO (untuk .env Laravel) ===="
-#       - "DB_HOST=127.0.0.1"
-#       - "DB_PORT={{ mariadb_port }}"
-#       - "DB_DATABASE={{ mariadb_databases[0].name }}"
-#       - "DB_USERNAME={{ mariadb_users[0].name }}"
-#       - "DB_PASSWORD=<lihat group_vars/all.yml>"

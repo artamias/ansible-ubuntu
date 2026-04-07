@@ -1,0 +1,66 @@
+---
+
+- name: Install dependency curl dan build tools
+  apt:
+    name:
+      - curl
+      - build-essential
+    state: present
+    update_cache: yes
+
+# - name: Cek apakah NVM sudah terinstall
+#   stat:
+#     path: "/root/.nvm/nvm.sh"
+#   register: nvm_installed
+
+- name: Download dan install NVM
+  shell: |
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash
+  args:
+    executable: /bin/bash
+  when: not nvm_installed.stat.exists
+
+- name: Install Node.js versi yang dipilih via NVM
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    nvm install {{ nodejs_version }}
+    nvm alias default {{ nodejs_version }}
+  args:
+    executable: /bin/bash
+
+- name: Buat symlink node dan npm agar bisa dipakai system-wide
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    NVM_BIN=$(nvm which {{ nodejs_version }})
+    NODE_DIR=$(dirname $NVM_BIN)
+    ln -sf $NODE_DIR/node /usr/local/bin/node
+    ln -sf $NODE_DIR/npm /usr/local/bin/npm
+    ln -sf $NODE_DIR/npx /usr/local/bin/npx
+  args:
+    executable: /bin/bash
+
+- name: Tambah NVM ke /etc/profile.d agar tersedia untuk semua user
+  copy:
+    dest: /etc/profile.d/nvm.sh
+    content: |
+      export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+      [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+    mode: '0644'
+
+- name: Verifikasi Node.js dan npm terinstall
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    echo "Node: $(node -v)"
+    echo "NPM:  $(npm -v)"
+  args:
+    executable: /bin/bash
+  register: node_version_check
+  changed_when: false
+
+- name: Tampilkan versi Node.js dan npm
+  debug:
+    msg: "{{ node_version_check.stdout_lines }}"

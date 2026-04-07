@@ -1,5 +1,5 @@
 - name: Setup Nginx, Mariadb, dan PHP Multiversion untuk Laravel 
-  hosts: webservers
+  hosts: setup
   become: yes
   gather_facts: yes
 
@@ -19,3 +19,7 @@
     # Tasks for install Mariadb with secure installation and create DB and user for Laravel
     - role: mariadb
       tags: [mariadb, db]
+
+    # Task for install nodejs version LTS
+    - role: nodejs
+      tags: [nodejs]

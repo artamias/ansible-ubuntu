@@ -30,6 +30,10 @@ mariadb_root_password: "{{ vault_mariadb_root_password }}"
 mariadb_bind_address: "127.0.0.1"
 mariadb_port: 3306
 
+# NodeJS Configuration
+nodejs_version: "24"
+
+
 # Database and user for Laravel
 mariadb_databases:
     - name: db_laravel
