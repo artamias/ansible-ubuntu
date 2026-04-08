@@ -1,6 +1,7 @@
 ---
 
 # INSTALL SUPABASE VIA DOCKER COMPOSE
+# Required install docker before supabase
 
 # Clone repository Supabase
 - name: Clone Supabase dengan Sparse Checkout
@@ -35,10 +36,9 @@
     force: no # Agar data tidak ditimpa jika sudah ada
 
 # Pull image 
-- name: Pull Docker images terbaru
-  command: docker compose pull
-  args:
-    chdir: "{{ project_dir }}"
+- name: Pull latest Docker images
+  community.docker.docker_compose_v2_pull:
+    project_src: "{{ project_dir }}"
 
 # Running Supabase with Docker compose
 - name: Jalankan Supabase Stack
