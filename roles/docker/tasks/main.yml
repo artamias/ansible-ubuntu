@@ -49,18 +49,25 @@
     name: portainer_data
     state: present
 
-# Create Portainer with docker run
+# Check if portainer available
+- name: Cek apakah container portainer sudah ada
+  shell: docker ps -a --format '{{"{{.Names}}"}}' | grep -w portainer
+  register: portainer_check
+  ignore_errors: true
+
+# Create Portainer CE
 - name: Jalankan Portainer CE Container
-  shell:
-    cmd: |
-      docker run -d -p 8000:8000 -p 9443:9443 --name portainer \
-      --restart=always \
-      -v /var/run/docker.sock:/var/run/docker.sock \
-      -v portainer_data:/data \
-      portainer/portainer-ce:latest
-  args:
-    # Task jalan kalau container belum ada
-    creates: /var/lib/docker/containers/*portainer*
+  community.docker.docker_container:
+    name: portainer
+    image: portainer/portainer-ce:latest
+    state: started
+    restart_policy: always
+    ports:
+      - "8000:8000"
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
 
 # Verification Portainer service
 - name: Verifikasi status Portainer

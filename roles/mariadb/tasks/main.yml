@@ -13,8 +13,8 @@
 # Download mariadb signing key
 - name: Download MariaDB signing key
   get_url:
-    url: "https://mariadb.org/mariadb_release_signing_key.pgp"
-    dest: /etc/apt/keyrings/mariadb-keyring.pgp
+    url: "{{ mariadb_key_url }}"
+    dest: "{{ mariadb_key_path }}"
     mode: '0644'
 
 # Add repository mariadb with singing key
@@ -39,73 +39,3 @@
     name: mariadb
     state: started
     enabled: yes
-
-# Setup security mariadb
-- name: Set root password MariaDB
-  mysql_user:
-    name: root
-    password: "{{ mariadb_root_password }}"
-    host_all: yes
-    login_unix_socket: /var/run/mysqld/mysqld.sock
-    state: present
-  no_log: true
-
-- name: Hapus anonymous users
-  mysql_user:
-    name: ''
-    host_all: yes
-    state: absent
-    login_user: root
-    login_password: "{{ mariadb_root_password }}"
-  no_log: true
-
-- name: Hapus test database
-  mysql_db:
-    name: test
-    state: absent
-    login_user: root
-    login_password: "{{ mariadb_root_password }}"
-  no_log: true
-
-- name: Menghapus remote root login
-  mysql_user:
-    name: root
-    host: "{{ item }}"
-    state: absent
-    login_user: root
-    login_password: "{{ mariadb_root_password }}"
-  loop:
-    - "{{ ansible_hostname }}"
-    - "127.0.0.1" #ipv4
-    - "::1" #ipv6
-  ignore_errors: yes
-  no_log: true
-
-# Create database for Laravel
-- name: Buat database Laravel
-  mysql_db:
-    name: "{{ item.name }}"
-    encoding: "{{ item.encoding }}"
-    collation: "{{ item.collation }}"
-    state: present
-    login_user: root
-    login_password: "{{ mariadb_root_password }}"
-  loop: "{{ mariadb_databases }}"
-  no_log: true
-
-- name: Buat user database Laravel
-  mysql_user:
-    name: "{{ item.name }}"
-    password: "{{ item.password }}"
-    priv: "{{ item.priv }}"
-    host: "{{ item.host }}"
-    state: present
-    login_user: root
-    login_password: "{{ mariadb_root_password }}"
-  loop: "{{ mariadb_users }}"
-  no_log: true
-
-- name: Flush privileges
-  command: mysql -u root -p{{ mariadb_root_password }} -e "FLUSH PRIVILEGES;"
-  changed_when: false
-  no_log: true

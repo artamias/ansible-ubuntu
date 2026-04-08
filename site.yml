@@ -1,6 +1,6 @@
 - name: Setup Nginx, Mariadb, dan PHP Multiversion untuk Laravel 
   hosts: setup
-  # become: yes
+  become: yes
   gather_facts: yes
 
   roles:

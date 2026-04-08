@@ -26,9 +26,8 @@ php_extensions:
 
 # MariaDB Configuration
 mariadb_version: "11.8"
-mariadb_root_password: "{{ vault_mariadb_root_password }}"
-mariadb_bind_address: "127.0.0.1"
-mariadb_port: 3306
+mariadb_key_url: "https://mariadb.org/mariadb_release_signing_key.pgp"
+mariadb_key_path: "/etc/apt/keyrings/mariadb-keyring.pgp"
 
 # Postgresql Configuration
 pg_version: "18"
