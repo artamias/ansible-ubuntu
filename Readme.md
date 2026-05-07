@@ -1,5 +1,3 @@
-# Report Provisioning menggunakan ansible
-
 1. Struktur Directory
 
 - group_vars = konfigurasi semua package, versi, maupun repository yang bisa di update dan disesuaikan
