@@ -1,79 +1,82 @@
 ---
 
-# Install required dependencies
-- name: Install dependensi yang dibutuhkan
+#Create dependency
+- name: Install dependensi dasar
   apt:
-    name: [apt-transport-https, ca-certificates, curl, gnupg, lsb-release]
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop:
+    - ca-certificates
+    - curl
+
+- name: Pastikan direktori keyrings ada
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Download Docker GPG key
+  get_url:
+    url: "{{ docker_gpg_url }}"
+    dest: "{{ docker_gpg_path }}"
+    mode: '0644'
+
+- name: Tambahkan Docker Repository
+  copy:
+    dest: /etc/apt/sources.list.d/docker.sources
+    content: |
+      Types: deb
+      URIs: {{ docker_repo_url }}
+      Suites: {{ ansible_facts['distribution_release'] }}
+      Components: stable
+      Architectures: {{ 'amd64' if ansible_facts['architecture'] == 'x86_64' else ansible_facts['architecture'] }}
+      Signed-By: {{ docker_gpg_path }}
+    mode: '0644'
+
+- name: Update cache dan install Docker engine
+  apt:
+    name: "{{ docker_packages }}"
     state: present
     update_cache: yes
 
-# Add GPG Key
-- name: Tambahkan GPG Key resmi Docker
-  shell:
-    cmd: |
-      set -o pipefail
-      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o {{ docker_keyring }}
-  args:
-    executable: /bin/bash
-    creates: "{{ docker_keyring }}"
-
-# Add repository Docker
-- name: Tambahkan Repo Docker
-  apt_repository:
-    repo: "deb [arch=amd64 signed-by={{ docker_keyring }}] https://download.docker.com/linux/ubuntu {{ distro_codename_docker }} stable"
-    state: present
-    filename: docker
-
-# Install Docker with environment
-- name: Install Docker Engine dan Docker Compose Plugin
-  apt:
-    name:
-      - docker-ce
-      - docker-ce-cli
-      - containerd.io
-      - docker-buildx-plugin
-      - docker-compose-plugin
-    state: present
-    update_cache: yes
-
-# Check Docker services
-- name: Cek Docker running dan enabled
-  systemd:
+- name: Pastikan Docker service berjalan dan enable on boot
+  service:
     name: docker
     state: started
     enabled: yes
 
 # Create docker volume for Portainer
-- name: Buat volume untuk data Portainer
-  docker_volume:
-    name: portainer_data
-    state: present
+# - name: Buat volume untuk data Portainer
+#   docker_volume:
+#     name: portainer_data
+#     state: present
 
-# Check if portainer available
-- name: Cek apakah container portainer sudah ada
-  shell: docker ps -a --format '{{"{{.Names}}"}}' | grep -w portainer
-  register: portainer_check
-  ignore_errors: true
+# # Check if portainer available
+# - name: Cek apakah container portainer sudah ada
+#   shell: docker ps -a --format '{{"{{.Names}}"}}' | grep -w portainer
+#   register: portainer_check
+#   ignore_errors: true
 
-# Create Portainer CE
-- name: Jalankan Portainer CE Container
-  community.docker.docker_container:
-    name: portainer
-    image: portainer/portainer-ce:latest
-    state: started
-    restart_policy: always
-    ports:
-      - "8000:8000"
-      - "9443:9443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - portainer_data:/data
+# # Create Portainer CE
+# - name: Jalankan Portainer CE Container
+#   community.docker.docker_container:
+#     name: portainer
+#     image: portainer/portainer-ce:latest
+#     state: started
+#     restart_policy: always
+#     ports:
+#       - "8000:8000"
+#       - "9443:9443"
+#     volumes:
+#       - /var/run/docker.sock:/var/run/docker.sock
+#       - portainer_data:/data
 
-# Verification Portainer service
-- name: Verifikasi status Portainer
-  command: docker ps -f name=portainer
-  register: portainer_status
-  changed_when: false
+# # Verification Portainer service
+# - name: Verifikasi status Portainer
+#   command: docker ps -f name=portainer
+#   register: portainer_status
+#   changed_when: false
 
 # Check docker installation
 - name: Selesai

@@ -1,45 +1,49 @@
-- name: Setup Nginx, Mariadb, dan PHP Multiversion untuk Laravel 
+- name: Setup Nginx, Mariadb, dan PHP Multiversion untuk Laravel
   hosts: setup
   become: yes
   gather_facts: yes
 
   roles:
-    # Tasks for install and update package, set timezone, swapfile and UFW firewall
-    - role: common
-      tags: [common, always]
+      # Tasks for install and update package, set timezone, swapfile and UFW firewall
+      - role: common
+        tags: [common]
 
-    # Tasks for install PHP 8.1/8.2/8.3 extensions and composer
-    - role: php
-      tags: [php]
+      # Tasks for install PHP 8.1/8.2/8.3 extensions and composer
+      - role: php
+        tags: [php]
 
-    # Task for install and configuration Nginx
-    - role: nginx
-      tags: [nginx]
+      # Task for install and configuration Nginx
+      - role: nginx
+        tags: [nginx]
 
-    # Tasks for install Mariadb with secure installation and create DB and user for Laravel
-    - role: mariadb
-      tags: [mariadb, db]
+      # Tasks for install Mariadb
+      - role: mariadb
+        tags: [mariadb, db]
 
-    # Task for install nodejs version LTS
-    - role: nodejs
-      tags: [nodejs]
+      # Task for install nodejs version LTS
+      - role: nodejs
+        tags: [nodejs]
 
-    # Task for install Postgresql 
-    - role: postgresql
-      tags: [postgresql]
+      # Task for install Postgresql
+      - role: postgresql
+        tags: [postgresql]
 
-    # Task for install RabbitMQ
-    - role: rabbitmq
-      tags: [rabbitmq]
+      # Task for install RabbitMQ
+      - role: rabbitmq
+        tags: [rabbitmq]
 
-    # Task for install redis
-    - role: redis
-      tags: [redis]
+      # Task for install redis
+      - role: redis
+        tags: [redis]
 
-    # Task for install docker
-    - role: docker
-      tags: [docker]
+      # Task for install docker
+      - role: docker
+        tags: [docker]
 
-      # Task for install supabase
-    - role: supabase
-      tags: [supabase]
+      # Task for install kubernetes (Microk8s)
+      - role: microk8s
+        tags: [microk8s]
+
+        # Task for install supabase
+      - role: supabase
+        tags: [supabase]

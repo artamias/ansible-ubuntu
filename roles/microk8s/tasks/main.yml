@@ -1,0 +1,109 @@
+---
+
+# ── 1. Install MicroK8s ─────────────────────────────────────────────────
+- name: Install microk8s via snap (classic)
+  community.general.snap:
+    name: microk8s
+    classic: true
+    state: present
+
+# ── 2. Tunggu microk8s siap ─────────────────────────────────────────────
+- name: Tunggu microk8s status ready
+  command: microk8s status --wait-ready
+  changed_when: false
+  timeout: 120
+
+# ── 3. Tambah user ke group microk8s (akses tanpa sudo) ─────────────────
+- name: Tambah {{ target_user }} ke group microk8s
+  user:
+    name: "{{ target_user }}"
+    groups: microk8s
+    append: true
+
+# ── 4. Buat direktori ~/.kube dan set ownership ─────────────────────────
+- name: Buat direktori .kube untuk {{ target_user }}
+  file:
+    path: "/home/{{ target_user }}/.kube"
+    state: directory
+    owner: "{{ target_user }}"
+    group: "{{ target_user }}"
+    mode: "0755"
+
+- name: Set kepemilikan .kube secara rekursif
+  file:
+    path: "/home/{{ target_user }}/.kube"
+    owner: "{{ target_user }}"
+    group: "{{ target_user }}"
+    recurse: true
+
+# ── 5. Copy microk8s config ke ~/.kube/config ───────────────────────────
+- name: Export microk8s config
+  command: microk8s config
+  register: mk8s_config
+  changed_when: false
+
+- name: Tulis config ke ~/.kube/config
+  copy:
+    content: "{{ mk8s_config.stdout }}"
+    dest: "/home/{{ target_user }}/.kube/config"
+    owner: "{{ target_user }}"
+    group: "{{ target_user }}"
+    mode: "0600"
+
+# ── 6. Install kubectl ──────────────────────────────────────────────────
+- name: Ambil versi stable kubectl
+  uri:
+    url: "{{ kubectl_version }}"
+    return_content: true
+  register: kubectl_version
+
+- name: Set variabel versi kubectl
+  set_fact:
+    kubectl_ver: "{{ kubectl_version.content | trim }}"
+
+- name: Download binary kubectl
+  get_url:
+    url: "https://dl.k8s.io/release/{{ kubectl_ver }}/bin/linux/amd64/kubectl"
+    dest: /tmp/kubectl
+    mode: "0755"
+
+- name: Download file checksum kubectl
+  get_url:
+    url: "https://dl.k8s.io/release/{{ kubectl_ver }}/bin/linux/amd64/kubectl.sha256"
+    dest: /tmp/kubectl.sha256
+
+- name: Baca isi file checksum
+  slurp:
+    src: /tmp/kubectl.sha256
+  register: kubectl_checksum_file
+
+- name: Verifikasi checksum kubectl
+  shell: |
+    echo "{{ kubectl_checksum_file.content | b64decode | trim }}  /tmp/kubectl" | sha256sum --check
+  changed_when: false
+
+- name: Install kubectl ke /usr/local/bin
+  copy:
+    src: /tmp/kubectl
+    dest: /usr/local/bin/kubectl
+    remote_src: true
+    owner: root
+    group: root
+    mode: "0755"
+
+# ── 7. Aktifkan kubectl bash completion ─────────────────────────────────
+- name: Pastikan baris completion ada di .bashrc
+  become: false
+  lineinfile:
+    path: "/home/{{ target_user }}/.bashrc"
+    line: 'source <(kubectl completion bash)'
+    create: true
+    state: present
+
+# ── 8. Informasi selesai ─────────────────────────────────────────────────
+- name: Setup selesai
+  debug:
+    msg: >
+      MicroK8s dan kubectl berhasil di-install untuk user '{{ target_user }}'.
+      Silakan logout dan login kembali agar perubahan group microk8s aktif,
+      kemudian jalankan: kubectl get nodes

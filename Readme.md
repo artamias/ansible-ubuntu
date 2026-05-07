@@ -1,50 +1,50 @@
 # Report Provisioning menggunakan ansible
 
 1. Struktur Directory
-- group_vars  = konfigurasi semua package, versi, maupun repository yang bisa di update dan disesuaikan
-- inventory   = menyimpan target host yang akan di eksekusi
-- roles       = berisi konfigurasi tasks yang dijalankan
+
+- group_vars = konfigurasi semua package, versi, maupun repository yang bisa di update dan disesuaikan
+- inventory = menyimpan target host yang akan di eksekusi
+- roles = berisi konfigurasi tasks yang dijalankan
 - ansible.cfg = menyimpan konfigurasi ansible secara global
-- site.yml    = menjalankan semua tasks yang ada di dir "roles"
+- site.yml = menjalankan semua tasks yang ada di dir "roles"
 
 2. Running task ansible
-Jalankan semua
-- ansible-playbook site.yml
+   Jalankan semua
+
+- ansible-playbook site.yml -K
 
 Hanya menjalankan PHP
-- ansible-playbook site.yml --tags php
+
+- ansible-playbook site.yml --tags php -K
 
 Hanya menjalankan nodejs
-- ansible-playbook site.yml --tags nodejs
+
+- ansible-playbook site.yml --tags nodejs -K
 
 Hanya menjalankan Nginx
-- ansible-playbook site.yml --tags nginx
+
+- ansible-playbook site.yml --tags nginx -K
 
 Hanya menjalankan MariaDB
-- ansible-playbook site.yml --tags mariadb
+
+- ansible-playbook site.yml --tags mariadb -K
 
 Hanya menjalankan Postgresql
-- ansible-playbook site.yml --tags postgresql
+
+- ansible-playbook site.yml --tags postgresql -K
 
 Hanya menjalankan Supabase
-- ansible-playbook site.yml --tags supabase
+
+- ansible-playbook site.yml --tags supabase -K
 
 Hanya menjalankan redis
-- ansible-playbook site.yml --tags redis
+
+- ansible-playbook site.yml --tags redis -K
 
 Hanya menjalankan rabbitmq
-- ansible-playbook site.yml --tags rabbitmq
+
+- ansible-playbook site.yml --tags rabbitmq -K
 
 Hanya menjalankan docker
-- ansible-playbook site.yml --tags docker
 
-4. Sudah include dengan pembuatan laravel beserta konfigurasi nginx
-
-3. NOTE
-karena menginstall portainer yang berjalan di port 8000, di docker compose Supabase (supabase-kong) mengganti port menjadi 8001 dan 8444
-
-kong:
-container_name: supabase-kong
-ports:
-    - 8001:8000/tcp # ganti bind port-nya
-    - 8444:8443/tcp # ganti bind port-nya
+- ansible-playbook site.yml --tags docker -K

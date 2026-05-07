@@ -18,15 +18,16 @@
 
 - name: Download dan install Node.js versi {{ nodejs_version }} via NVM
   shell: >
-    executable=/bin/bash
     source {{ nvm_dir }}/nvm.sh && nvm install {{ nodejs_version }} && nvm alias default {{ nodejs_version }}
   args:
+    executable: /bin/bash
     creates: "{{ nvm_dir }}/versions/node/v{{ nodejs_version }}*"
 
 - name: Verifikasi instalasi Node.js
   shell: >
-    executable=/bin/bash
     source {{ nvm_dir }}/nvm.sh && node -v
+  args:
+    executable: /bin/bash
   register: node_v_output
 
 - name: Tampilkan versi Node.js
@@ -35,8 +36,9 @@
 
 - name: Verifikasi instalasi NPM
   shell: >
-    executable=/bin/bash
     source {{ nvm_dir }}/nvm.sh && npm -v
+  args:
+    executable: /bin/bash
   register: npm_v_output
 
 - name: Tampilkan versi NPM
